@@ -11,11 +11,11 @@ parser = argparse.ArgumentParser(description="Plate with arbitrary voids config"
 parser.add_argument("--n_train", type=int, default=1000, help="Number of training samples")
 parser.add_argument("--n_test", type=int, default=200, help="Number of test samples")
 parser.add_argument("--batch_size", type=int, default=20, help="Batch size for training")
-parser.add_argument("--num_epoch", type=int, default=1000, help="Number of training epochs")
+parser.add_argument("--num_epoch", type=int, default=50, help="Number of training epochs")
 parser.add_argument("--learning_rate", type=float, default=0.001, help="Learning rate for optimizer")
 parser.add_argument("--normalized", type=int, default=0, help="Enable data normalization")
 parser.add_argument("--load_model", type=int, default=1, help="Load pretrained model")
-parser.add_argument("--training", type=int, default=0, help="Enable/disable training")
+parser.add_argument("--training", type=int, default=1, help="Enable/disable training")
 parser.add_argument("--ds_len", type=int, default=50, help="Number of test dataset for evaluation in post processing")
 
 # Plate/beam geometry

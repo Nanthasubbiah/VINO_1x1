@@ -26,7 +26,7 @@ from utils.fno_2d import FNO2D
 from utils.database_makers import PlateHole_dataset
 from configs.config_PlateArbitVoid import model_data
 from utils.postprocessing import plot_loss_trend, plot_PlateArbitVoid
-# from utils.pde_solvers import PlateHole_IGA_solver, PlateWithHole_solver, PlateWithHole_IGA_solver
+from utils.pde_solvers import PlateHole_IGA_solver, PlateWithHole_solver, PlateWithHole_IGA_solver
 from utils.postprocessing import plot_field_2d
 from utils.fno_utils import (
     count_params, VinoPlateHoleLoss, train_fno, model_evaluation, collate_fn,
@@ -128,8 +128,8 @@ loss_fn = VinoPlateHoleLoss(model, model_data, normalizers, d=1, p=1, size_avera
 loaded_model_params, train_losses, test_losses = load_training_state(model_save_path, losses_save_path)
 if model_data["load_model"] and loaded_model_params is not None:
     model_params = loaded_model_params
-    #best_loss = compute_validation_loss(model_params, train_loader, loss_fn)
-    #print("Best loss test data from previous model: ", best_loss)
+    # best_loss = compute_validation_loss(model_params, train_loader, loss_fn)
+    # print("Best loss test data from previous model: ", best_loss)
     best_loss = np.inf
 else:
     _x, _ = train_dataset[0]
@@ -185,9 +185,9 @@ print("Evaluating Test Data")
 field_names = ['disp_x', 'disp_y']
 print("___________________________________________________________________")
 # Train Dataset Evaluation
-# plot_PlateArbitVoid(train_dataset, 56, "Train", model, model_params, model_data, field_names, folder)
+plot_PlateArbitVoid(train_dataset, 56, "Train", model, model_params, model_data, field_names, folder)
 # Test Dataset Evaluation
-# plot_PlateArbitVoid(test_dataset, 96, "Test", model, model_params, model_data, field_names, folder)
+plot_PlateArbitVoid(test_dataset, 96, "Test", model, model_params, model_data, field_names, folder)
 print("___________________________________________________________________")
 
 

@@ -170,6 +170,7 @@ def plot_PlateArbitVoid(dataset, index, data_type, model, model_params, model_da
     x_data, y_data = dataset[index]
     x_data, y_data = jnp.expand_dims(x_data, axis=0), jnp.expand_dims(y_data, axis=0)
     y_pred = model.apply(model_params, x_data)
+    mask = x_data[..., 0:1]
 
     if model_data["normalized"]:
         x_data = dataset.normalizer_x.decode(x_data)
@@ -180,16 +181,16 @@ def plot_PlateArbitVoid(dataset, index, data_type, model, model_params, model_da
     for field_index, field_name in enumerate(field_names):
         plot_field_2d(
             y_data[0, :, :, field_index], model_data["beam"]["length"], model_data["beam"]["width"],
-            f"{data_type} - Exact - {field_name}", mask=x_data,
+            f"{data_type} - Exact - {field_name}", mask=mask,
             folder=folder, file=f"{data_type}Exact_{field_name}"
         )
         plot_field_2d(
             y_pred[0, :, :, field_index], model_data["beam"]["length"], model_data["beam"]["width"],
-            f"{data_type} - Predicted - {field_name}", mask=x_data,
+            f"{data_type} - Predicted - {field_name}", mask=mask,
             folder=folder, file=f"{data_type}Predicted_{field_name}"
         )
         plot_field_2d(
             y_pred[0, :, :, field_index] - y_data[0, :, :, field_index],
             model_data["beam"]["length"], model_data["beam"]["width"], f"{data_type} - Error - {field_name}",
-            mask=x_data, folder=folder, file=f"{data_type}Error_{field_name}", isError=True
+            mask=mask, folder=folder, file=f"{data_type}Error_{field_name}", isError=True
         )

@@ -1033,6 +1033,6 @@ class VinoPlateHoleLoss(DemPlateHoleLoss):
         loss_bnd = jnp.sum(disp_x_right * tx) * dy
         # jax.debug.print("loss_int = {}, loss_bnd = {}, diff = {}", loss_int, loss_bnd, loss_int - loss_bnd)
         # jax.debug.print("loss_physics = {}", loss_int - loss_bnd)
-        return loss_data + (loss_int - loss_bnd) / batch_size
-        # return (loss_int - loss_bnd) / batch_size
+        # return loss_data + (loss_int - loss_bnd) / batch_size
+        return (loss_int - loss_bnd) / batch_size
         # return loss_data
