@@ -1025,12 +1025,18 @@ class VinoPlateHoleLoss(DemPlateHoleLoss):
 
         # calculate the boundary loss
         disp_x, disp_y = y_out[..., 0:1], y_out[..., 1:2]
-        disp_x_right = disp_x[:, :, -1, :]
-        tx = jnp.ones_like(disp_x_right)
-        tx = tx.at[:, 0, :].set(tx[:, 0, :] / 2)
-        tx = tx.at[:, -1, :].set(tx[:, -1, :] / 2)
+        # disp_x_right = disp_x[:, :, -1, :]
+        # tx = jnp.ones_like(disp_x_right)
+        # tx = tx.at[:, 0, :].set(tx[:, 0, :] / 2)
+        # tx = tx.at[:, -1, :].set(tx[:, -1, :] / 2)
 
-        loss_bnd = jnp.sum(disp_x_right * tx) * dy
+        disp_y_right = disp_y[:, :, -1, :]
+        ty = jnp.array(x_real[:, :, -1, 1:2])
+        ty = ty.at[:, 0, :].set(ty[:, 0, :] / 2)
+        ty = ty.at[:, -1, :].set(ty[:, -1, :] / 2)
+        loss_bnd = jnp.sum(disp_y_right * ty) * dy  # note: ty → disp_y
+
+        # loss_bnd = jnp.sum(disp_x_right * tx) * dy
         # jax.debug.print("loss_int = {}, loss_bnd = {}, diff = {}", loss_int, loss_bnd, loss_int - loss_bnd)
         # jax.debug.print("loss_physics = {}", loss_int - loss_bnd)
         # return loss_data + (loss_int - loss_bnd) / batch_size
