@@ -70,7 +70,7 @@ model_data = {
         "num_refinements": 5,
         "numPtsU": num_pts_x,
         "numPtsV": num_pts_y,
-        "traction": np.ones_like(np.linspace(0, plate_width, num_pts_y)),
+        # "traction": np.ones_like(np.linspace(0, plate_width, num_pts_y)),
         "E": args.E,
         "nu": args.nu,
         "state": "plane stress",
