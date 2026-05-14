@@ -163,6 +163,7 @@ class PlateHole_dataset(Dataset):
                 row = np.argmax(np.abs(ty_profile[i]))
                 row = min(row, NY - 1)  # clip to element grid
                 traction2D[i, row, NX-1, 0] = ty_profile[i, row]
+            
             self.traction2D = traction2D  # moved outside the loop
             self.set_data()  # build self.x and self.y after loading
         else:
