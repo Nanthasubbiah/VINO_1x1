@@ -8,11 +8,11 @@ import argparse
 parser = argparse.ArgumentParser(description="Plate with arbitrary voids config")
 
 # Dataset/training
-parser.add_argument("--n_train", type=int, default=1000, help="Number of training samples")
-parser.add_argument("--n_test", type=int, default=200, help="Number of test samples")
-parser.add_argument("--batch_size", type=int, default=20, help="Batch size for training")
-parser.add_argument("--num_epoch", type=int, default=50, help="Number of training epochs")
-parser.add_argument("--learning_rate", type=float, default=0.001, help="Learning rate for optimizer")
+parser.add_argument("--n_train", type=int, default=1, help="Number of training samples")
+parser.add_argument("--n_test", type=int, default=1, help="Number of test samples")
+parser.add_argument("--batch_size", type=int, default=1, help="Batch size for training")
+parser.add_argument("--num_epoch", type=int, default=100, help="Number of training epochs")
+parser.add_argument("--learning_rate", type=float, default=0.01, help="Learning rate for optimizer")
 parser.add_argument("--normalized", type=int, default=0, help="Enable data normalization")
 parser.add_argument("--load_model", type=int, default=1, help="Load pretrained model")
 parser.add_argument("--training", type=int, default=1, help="Enable/disable training")
@@ -54,7 +54,7 @@ model_data = {
     "n_train": args.n_train,
     "n_test": args.n_test,
     "n_data": args.n_train + args.n_test,
-    "n_dataset": args.n_train + args.n_test,
+    "n_dataset": 1200,
     "batch_size": args.batch_size,
     "batch_size_BFGS": 50,
     "num_epoch": args.num_epoch,

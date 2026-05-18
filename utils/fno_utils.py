@@ -935,7 +935,10 @@ class VinoPlateHoleLoss(DemPlateHoleLoss):
             y_real = y
 
         loss_data = self.rel(y_out, y_real)
-        elasticity_modulus = jnp.where(x_real < 0.5, 1.0, 0.0)
+        x_E = x_real[..., 0:1]
+        x_t = x_real[..., 1:2]
+        # elasticity_modulus = jnp.where(x_E < 0.5, 1.0, 0.0)
+        elasticity_modulus = x_E
         e_mat = self.Emod * elasticity_modulus
 
         e_00 = e_mat[:, 0:-1, 0:-1, :]
@@ -958,70 +961,78 @@ class VinoPlateHoleLoss(DemPlateHoleLoss):
         n = dy / dx
         nu = self.nu
         batch_size = e_00.shape[0]
-        loss_int = jnp.sum(
-            -(3 * e_00 * dudx_0 ** 2 + 3 * e_00 * dudx_1 ** 2 + 18 * e_00 * dudy_0 ** 2 + 9 * e_01 * dudx_0 ** 2 +
-              9 * e_01 * dudx_1 ** 2 + 18 * e_01 * dudy_0 ** 2 + 3 * e_10 * dudx_0 ** 2 + 3 * e_10 * dudx_1 ** 2 +
-              18 * e_10 * dudy_0 ** 2 + 9 * e_11 * dudx_0 ** 2 + 9 * e_11 * dudx_1 ** 2 + 18 * e_11 * dudy_0 ** 2 +
-              6 * e_00 * dvdx_0 ** 2 + 6 * e_00 * dvdx_1 ** 2 + 36 * e_00 * dvdy_0 ** 2 + 18 * e_01 * dvdx_0 ** 2 +
-              18 * e_01 * dvdx_1 ** 2 + 36 * e_01 * dvdy_0 ** 2 + 6 * e_10 * dvdx_0 ** 2 + 6 * e_10 * dvdx_1 ** 2 +
-              36 * e_10 * dvdy_0 ** 2 + 18 * e_11 * dvdx_0 ** 2 + 18 * e_11 * dvdx_1 ** 2 + 36 * e_11 * dvdy_0 ** 2 +
-              18 * e_00 * dudx_0 ** 2 * n ** 2 + 6 * e_00 * dudx_1 ** 2 * n ** 2 + 18 * e_01 * dudx_0 ** 2 * n ** 2 +
-              6 * e_01 * dudx_1 ** 2 * n ** 2 + 6 * e_10 * dudx_0 ** 2 * n ** 2 + 18 * e_10 * dudx_1 ** 2 * n ** 2 +
-              6 * e_11 * dudx_0 ** 2 * n ** 2 + 18 * e_11 * dudx_1 ** 2 * n ** 2 + 9 * e_00 * dvdx_0 ** 2 * n ** 2 +
-              3 * e_00 * dvdx_1 ** 2 * n ** 2 + 9 * e_01 * dvdx_0 ** 2 * n ** 2 + 3 * e_01 * dvdx_1 ** 2 * n ** 2 +
-              3 * e_10 * dvdx_0 ** 2 * n ** 2 + 9 * e_10 * dvdx_1 ** 2 * n ** 2 + 3 * e_11 * dvdx_0 ** 2 * n ** 2 +
-              9 * e_11 * dvdx_1 ** 2 * n ** 2 - 6 * e_00 * dudx_0 * dudx_1 - 12 * e_00 * dudx_0 * dudy_0 +
-              12 * e_00 * dudx_1 * dudy_0 - 18 * e_01 * dudx_0 * dudx_1 - 24 * e_01 * dudx_0 * dudy_0 +
-              24 * e_01 * dudx_1 * dudy_0 - 6 * e_10 * dudx_0 * dudx_1 - 12 * e_10 * dudx_0 * dudy_0 +
-              12 * e_10 * dudx_1 * dudy_0 - 18 * e_11 * dudx_0 * dudx_1 - 24 * e_11 * dudx_0 * dudy_0 +
-              24 * e_11 * dudx_1 * dudy_0 - 12 * e_00 * dvdx_0 * dvdx_1 - 24 * e_00 * dvdx_0 * dvdy_0 +
-              24 * e_00 * dvdx_1 * dvdy_0 - 36 * e_01 * dvdx_0 * dvdx_1 - 48 * e_01 * dvdx_0 * dvdy_0 +
-              48 * e_01 * dvdx_1 * dvdy_0 - 12 * e_10 * dvdx_0 * dvdx_1 - 24 * e_10 * dvdx_0 * dvdy_0 +
-              24 * e_10 * dvdx_1 * dvdy_0 - 36 * e_11 * dvdx_0 * dvdx_1 - 48 * e_11 * dvdx_0 * dvdy_0 +
-              48 * e_11 * dvdx_1 * dvdy_0 - 3 * e_00 * dudx_0 ** 2 * nu - 3 * e_00 * dudx_1 ** 2 * nu -
-              18 * e_00 * dudy_0 ** 2 * nu - 9 * e_01 * dudx_0 ** 2 * nu - 9 * e_01 * dudx_1 ** 2 * nu -
-              18 * e_01 * dudy_0 ** 2 * nu - 3 * e_10 * dudx_0 ** 2 * nu - 3 * e_10 * dudx_1 ** 2 * nu -
-              18 * e_10 * dudy_0 ** 2 * nu - 9 * e_11 * dudx_0 ** 2 * nu - 9 * e_11 * dudx_1 ** 2 * nu -
-              18 * e_11 * dudy_0 ** 2 * nu + 12 * e_00 * dudx_0 * dudx_1 * n ** 2 +
-              12 * e_01 * dudx_0 * dudx_1 * n ** 2 + 12 * e_10 * dudx_0 * dudx_1 * n ** 2 +
-              12 * e_11 * dudx_0 * dudx_1 * n ** 2 + 6 * e_00 * dvdx_0 * dvdx_1 * n ** 2 +
-              6 * e_01 * dvdx_0 * dvdx_1 * n ** 2 + 6 * e_10 * dvdx_0 * dvdx_1 * n ** 2 +
-              6 * e_11 * dvdx_0 * dvdx_1 * n ** 2 - 9 * e_00 * dvdx_0 ** 2 * n ** 2 * nu -
-              3 * e_00 * dvdx_1 ** 2 * n ** 2 * nu - 9 * e_01 * dvdx_0 ** 2 * n ** 2 * nu -
-              3 * e_01 * dvdx_1 ** 2 * n ** 2 * nu - 3 * e_10 * dvdx_0 ** 2 * n ** 2 * nu -
-              9 * e_10 * dvdx_1 ** 2 * n ** 2 * nu - 3 * e_11 * dvdx_0 ** 2 * n ** 2 * nu -
-              9 * e_11 * dvdx_1 ** 2 * n ** 2 * nu - 8 * e_00 * dudx_0 * dvdx_0 * n - 4 * e_00 * dudx_0 * dvdx_1 * n +
-              8 * e_00 * dudx_1 * dvdx_0 * n + 24 * e_00 * dudy_0 * dvdx_0 * n - 16 * e_01 * dudx_0 * dvdx_0 * n +
-              4 * e_00 * dudx_1 * dvdx_1 * n + 12 * e_00 * dudy_0 * dvdx_1 * n - 8 * e_01 * dudx_0 * dvdx_1 * n +
-              16 * e_01 * dudx_1 * dvdx_0 * n + 24 * e_01 * dudy_0 * dvdx_0 * n + 8 * e_01 * dudx_1 * dvdx_1 * n +
-              12 * e_01 * dudy_0 * dvdx_1 * n - 4 * e_10 * dudx_0 * dvdx_0 * n - 8 * e_10 * dudx_0 * dvdx_1 * n +
-              4 * e_10 * dudx_1 * dvdx_0 * n + 12 * e_10 * dudy_0 * dvdx_0 * n - 8 * e_11 * dudx_0 * dvdx_0 * n +
-              8 * e_10 * dudx_1 * dvdx_1 * n + 24 * e_10 * dudy_0 * dvdx_1 * n - 16 * e_11 * dudx_0 * dvdx_1 * n +
-              8 * e_11 * dudx_1 * dvdx_0 * n + 12 * e_11 * dudy_0 * dvdx_0 * n + 16 * e_11 * dudx_1 * dvdx_1 * n +
-              24 * e_11 * dudy_0 * dvdx_1 * n + 6 * e_00 * dudx_0 * dudx_1 * nu + 12 * e_00 * dudx_0 * dudy_0 * nu -
-              12 * e_00 * dudx_1 * dudy_0 * nu + 18 * e_01 * dudx_0 * dudx_1 * nu + 24 * e_01 * dudx_0 * dudy_0 * nu -
-              24 * e_01 * dudx_1 * dudy_0 * nu + 6 * e_10 * dudx_0 * dudx_1 * nu + 12 * e_10 * dudx_0 * dudy_0 * nu -
-              12 * e_10 * dudx_1 * dudy_0 * nu + 18 * e_11 * dudx_0 * dudx_1 * nu + 24 * e_11 * dudx_0 * dudy_0 * nu -
-              24 * e_11 * dudx_1 * dudy_0 * nu - 8 * e_00 * dudx_0 * dvdx_0 * n * nu +
-              20 * e_00 * dudx_0 * dvdx_1 * n * nu + 48 * e_00 * dudx_0 * dvdy_0 * n * nu -
-              16 * e_00 * dudx_1 * dvdx_0 * n * nu - 24 * e_00 * dudy_0 * dvdx_0 * n * nu -
-              16 * e_01 * dudx_0 * dvdx_0 * n * nu + 4 * e_00 * dudx_1 * dvdx_1 * n * nu +
-              24 * e_00 * dudx_1 * dvdy_0 * n * nu - 12 * e_00 * dudy_0 * dvdx_1 * n * nu +
-              40 * e_01 * dudx_0 * dvdx_1 * n * nu + 48 * e_01 * dudx_0 * dvdy_0 * n * nu -
-              32 * e_01 * dudx_1 * dvdx_0 * n * nu - 24 * e_01 * dudy_0 * dvdx_0 * n * nu +
-              8 * e_01 * dudx_1 * dvdx_1 * n * nu + 24 * e_01 * dudx_1 * dvdy_0 * n * nu -
-              12 * e_01 * dudy_0 * dvdx_1 * n * nu - 4 * e_10 * dudx_0 * dvdx_0 * n * nu +
-              16 * e_10 * dudx_0 * dvdx_1 * n * nu + 24 * e_10 * dudx_0 * dvdy_0 * n * nu -
-              20 * e_10 * dudx_1 * dvdx_0 * n * nu - 12 * e_10 * dudy_0 * dvdx_0 * n * nu -
-              8 * e_11 * dudx_0 * dvdx_0 * n * nu + 8 * e_10 * dudx_1 * dvdx_1 * n * nu +
-              48 * e_10 * dudx_1 * dvdy_0 * n * nu - 24 * e_10 * dudy_0 * dvdx_1 * n * nu +
-              32 * e_11 * dudx_0 * dvdx_1 * n * nu + 24 * e_11 * dudx_0 * dvdy_0 * n * nu -
-              40 * e_11 * dudx_1 * dvdx_0 * n * nu - 12 * e_11 * dudy_0 * dvdx_0 * n * nu +
-              16 * e_11 * dudx_1 * dvdx_1 * n * nu + 48 * e_11 * dudx_1 * dvdy_0 * n * nu -
-              24 * e_11 * dudy_0 * dvdx_1 * n * nu - 6 * e_00 * dvdx_0 * dvdx_1 * n ** 2 * nu -
-              6 * e_01 * dvdx_0 * dvdx_1 * n ** 2 * nu - 6 * e_10 * dvdx_0 * dvdx_1 * n ** 2 * nu -
-              6 * e_11 * dvdx_0 * dvdx_1 * n ** 2 * nu) / (288 * n * (nu ** 2 - 1))
-        )
+
+        loss_int_arr = -(
+                3 * e_00 * dudx_0 ** 2 + 3 * e_00 * dudx_1 ** 2 + 18 * e_00 * dudy_0 ** 2 + 9 * e_01 * dudx_0 ** 2 +
+                9 * e_01 * dudx_1 ** 2 + 18 * e_01 * dudy_0 ** 2 + 3 * e_10 * dudx_0 ** 2 + 3 * e_10 * dudx_1 ** 2 +
+                18 * e_10 * dudy_0 ** 2 + 9 * e_11 * dudx_0 ** 2 + 9 * e_11 * dudx_1 ** 2 + 18 * e_11 * dudy_0 ** 2 +
+                6 * e_00 * dvdx_0 ** 2 + 6 * e_00 * dvdx_1 ** 2 + 36 * e_00 * dvdy_0 ** 2 + 18 * e_01 * dvdx_0 ** 2 +
+                18 * e_01 * dvdx_1 ** 2 + 36 * e_01 * dvdy_0 ** 2 + 6 * e_10 * dvdx_0 ** 2 + 6 * e_10 * dvdx_1 ** 2 +
+                36 * e_10 * dvdy_0 ** 2 + 18 * e_11 * dvdx_0 ** 2 + 18 * e_11 * dvdx_1 ** 2 + 36 * e_11 * dvdy_0 ** 2 +
+                18 * e_00 * dudx_0 ** 2 * n ** 2 + 6 * e_00 * dudx_1 ** 2 * n ** 2 + 18 * e_01 * dudx_0 ** 2 * n ** 2 +
+                6 * e_01 * dudx_1 ** 2 * n ** 2 + 6 * e_10 * dudx_0 ** 2 * n ** 2 + 18 * e_10 * dudx_1 ** 2 * n ** 2 +
+                6 * e_11 * dudx_0 ** 2 * n ** 2 + 18 * e_11 * dudx_1 ** 2 * n ** 2 + 9 * e_00 * dvdx_0 ** 2 * n ** 2 +
+                3 * e_00 * dvdx_1 ** 2 * n ** 2 + 9 * e_01 * dvdx_0 ** 2 * n ** 2 + 3 * e_01 * dvdx_1 ** 2 * n ** 2 +
+                3 * e_10 * dvdx_0 ** 2 * n ** 2 + 9 * e_10 * dvdx_1 ** 2 * n ** 2 + 3 * e_11 * dvdx_0 ** 2 * n ** 2 +
+                9 * e_11 * dvdx_1 ** 2 * n ** 2 - 6 * e_00 * dudx_0 * dudx_1 - 12 * e_00 * dudx_0 * dudy_0 +
+                12 * e_00 * dudx_1 * dudy_0 - 18 * e_01 * dudx_0 * dudx_1 - 24 * e_01 * dudx_0 * dudy_0 +
+                24 * e_01 * dudx_1 * dudy_0 - 6 * e_10 * dudx_0 * dudx_1 - 12 * e_10 * dudx_0 * dudy_0 +
+                12 * e_10 * dudx_1 * dudy_0 - 18 * e_11 * dudx_0 * dudx_1 - 24 * e_11 * dudx_0 * dudy_0 +
+                24 * e_11 * dudx_1 * dudy_0 - 12 * e_00 * dvdx_0 * dvdx_1 - 24 * e_00 * dvdx_0 * dvdy_0 +
+                24 * e_00 * dvdx_1 * dvdy_0 - 36 * e_01 * dvdx_0 * dvdx_1 - 48 * e_01 * dvdx_0 * dvdy_0 +
+                48 * e_01 * dvdx_1 * dvdy_0 - 12 * e_10 * dvdx_0 * dvdx_1 - 24 * e_10 * dvdx_0 * dvdy_0 +
+                24 * e_10 * dvdx_1 * dvdy_0 - 36 * e_11 * dvdx_0 * dvdx_1 - 48 * e_11 * dvdx_0 * dvdy_0 +
+                48 * e_11 * dvdx_1 * dvdy_0 - 3 * e_00 * dudx_0 ** 2 * nu - 3 * e_00 * dudx_1 ** 2 * nu -
+                18 * e_00 * dudy_0 ** 2 * nu - 9 * e_01 * dudx_0 ** 2 * nu - 9 * e_01 * dudx_1 ** 2 * nu -
+                18 * e_01 * dudy_0 ** 2 * nu - 3 * e_10 * dudx_0 ** 2 * nu - 3 * e_10 * dudx_1 ** 2 * nu -
+                18 * e_10 * dudy_0 ** 2 * nu - 9 * e_11 * dudx_0 ** 2 * nu - 9 * e_11 * dudx_1 ** 2 * nu -
+                18 * e_11 * dudy_0 ** 2 * nu + 12 * e_00 * dudx_0 * dudx_1 * n ** 2 +
+                12 * e_01 * dudx_0 * dudx_1 * n ** 2 + 12 * e_10 * dudx_0 * dudx_1 * n ** 2 +
+                12 * e_11 * dudx_0 * dudx_1 * n ** 2 + 6 * e_00 * dvdx_0 * dvdx_1 * n ** 2 +
+                6 * e_01 * dvdx_0 * dvdx_1 * n ** 2 + 6 * e_10 * dvdx_0 * dvdx_1 * n ** 2 +
+                6 * e_11 * dvdx_0 * dvdx_1 * n ** 2 - 9 * e_00 * dvdx_0 ** 2 * n ** 2 * nu -
+                3 * e_00 * dvdx_1 ** 2 * n ** 2 * nu - 9 * e_01 * dvdx_0 ** 2 * n ** 2 * nu -
+                3 * e_01 * dvdx_1 ** 2 * n ** 2 * nu - 3 * e_10 * dvdx_0 ** 2 * n ** 2 * nu -
+                9 * e_10 * dvdx_1 ** 2 * n ** 2 * nu - 3 * e_11 * dvdx_0 ** 2 * n ** 2 * nu -
+                9 * e_11 * dvdx_1 ** 2 * n ** 2 * nu - 8 * e_00 * dudx_0 * dvdx_0 * n - 4 * e_00 * dudx_0 * dvdx_1 * n +
+                8 * e_00 * dudx_1 * dvdx_0 * n + 24 * e_00 * dudy_0 * dvdx_0 * n - 16 * e_01 * dudx_0 * dvdx_0 * n +
+                4 * e_00 * dudx_1 * dvdx_1 * n + 12 * e_00 * dudy_0 * dvdx_1 * n - 8 * e_01 * dudx_0 * dvdx_1 * n +
+                16 * e_01 * dudx_1 * dvdx_0 * n + 24 * e_01 * dudy_0 * dvdx_0 * n + 8 * e_01 * dudx_1 * dvdx_1 * n +
+                12 * e_01 * dudy_0 * dvdx_1 * n - 4 * e_10 * dudx_0 * dvdx_0 * n - 8 * e_10 * dudx_0 * dvdx_1 * n +
+                4 * e_10 * dudx_1 * dvdx_0 * n + 12 * e_10 * dudy_0 * dvdx_0 * n - 8 * e_11 * dudx_0 * dvdx_0 * n +
+                8 * e_10 * dudx_1 * dvdx_1 * n + 24 * e_10 * dudy_0 * dvdx_1 * n - 16 * e_11 * dudx_0 * dvdx_1 * n +
+                8 * e_11 * dudx_1 * dvdx_0 * n + 12 * e_11 * dudy_0 * dvdx_0 * n + 16 * e_11 * dudx_1 * dvdx_1 * n +
+                24 * e_11 * dudy_0 * dvdx_1 * n + 6 * e_00 * dudx_0 * dudx_1 * nu + 12 * e_00 * dudx_0 * dudy_0 * nu -
+                12 * e_00 * dudx_1 * dudy_0 * nu + 18 * e_01 * dudx_0 * dudx_1 * nu + 24 * e_01 * dudx_0 * dudy_0 * nu -
+                24 * e_01 * dudx_1 * dudy_0 * nu + 6 * e_10 * dudx_0 * dudx_1 * nu + 12 * e_10 * dudx_0 * dudy_0 * nu -
+                12 * e_10 * dudx_1 * dudy_0 * nu + 18 * e_11 * dudx_0 * dudx_1 * nu + 24 * e_11 * dudx_0 * dudy_0 * nu -
+                24 * e_11 * dudx_1 * dudy_0 * nu - 8 * e_00 * dudx_0 * dvdx_0 * n * nu +
+                20 * e_00 * dudx_0 * dvdx_1 * n * nu + 48 * e_00 * dudx_0 * dvdy_0 * n * nu -
+                16 * e_00 * dudx_1 * dvdx_0 * n * nu - 24 * e_00 * dudy_0 * dvdx_0 * n * nu -
+                16 * e_01 * dudx_0 * dvdx_0 * n * nu + 4 * e_00 * dudx_1 * dvdx_1 * n * nu +
+                24 * e_00 * dudx_1 * dvdy_0 * n * nu - 12 * e_00 * dudy_0 * dvdx_1 * n * nu +
+                40 * e_01 * dudx_0 * dvdx_1 * n * nu + 48 * e_01 * dudx_0 * dvdy_0 * n * nu -
+                32 * e_01 * dudx_1 * dvdx_0 * n * nu - 24 * e_01 * dudy_0 * dvdx_0 * n * nu +
+                8 * e_01 * dudx_1 * dvdx_1 * n * nu + 24 * e_01 * dudx_1 * dvdy_0 * n * nu -
+                12 * e_01 * dudy_0 * dvdx_1 * n * nu - 4 * e_10 * dudx_0 * dvdx_0 * n * nu +
+                16 * e_10 * dudx_0 * dvdx_1 * n * nu + 24 * e_10 * dudx_0 * dvdy_0 * n * nu -
+                20 * e_10 * dudx_1 * dvdx_0 * n * nu - 12 * e_10 * dudy_0 * dvdx_0 * n * nu -
+                8 * e_11 * dudx_0 * dvdx_0 * n * nu + 8 * e_10 * dudx_1 * dvdx_1 * n * nu +
+                48 * e_10 * dudx_1 * dvdy_0 * n * nu - 24 * e_10 * dudy_0 * dvdx_1 * n * nu +
+                32 * e_11 * dudx_0 * dvdx_1 * n * nu + 24 * e_11 * dudx_0 * dvdy_0 * n * nu -
+                40 * e_11 * dudx_1 * dvdx_0 * n * nu - 12 * e_11 * dudy_0 * dvdx_0 * n * nu +
+                16 * e_11 * dudx_1 * dvdx_1 * n * nu + 48 * e_11 * dudx_1 * dvdy_0 * n * nu -
+                24 * e_11 * dudy_0 * dvdx_1 * n * nu - 6 * e_00 * dvdx_0 * dvdx_1 * n ** 2 * nu -
+                6 * e_01 * dvdx_0 * dvdx_1 * n ** 2 * nu - 6 * e_10 * dvdx_0 * dvdx_1 * n ** 2 * nu -
+                6 * e_11 * dvdx_0 * dvdx_1 * n ** 2 * nu) / (288 * n * (nu ** 2 - 1))
+
+        loss_int = jnp.sum(loss_int_arr)
+        # loss_int = jnp.sum(loss_int_arr * elasticity_modulus[:, :-1, :-1, :])
+        # loss_int = jnp.sum(loss_int_arr * elasticity_modulus[:, 1:, 1:, :])
+
+        jax.debug.print("loss_int = {}", loss_int/batch_size)
+        jax.debug.print("loss_int_1 = {}", jnp.sum(loss_int_arr * elasticity_modulus[:, :-1, :-1, :]))
+        jax.debug.print("loss_in_2 = {}", jnp.sum(loss_int_arr * elasticity_modulus[:, 1:, 1:, :]))
 
         # calculate the boundary loss
         disp_x, disp_y = y_out[..., 0:1], y_out[..., 1:2]
@@ -1031,14 +1042,16 @@ class VinoPlateHoleLoss(DemPlateHoleLoss):
         # tx = tx.at[:, -1, :].set(tx[:, -1, :] / 2)
 
         disp_y_right = disp_y[:, :, -1, :]
-        ty = jnp.array(x_real[:, :, -1, 1:2])
-        ty = ty.at[:, 0, :].set(ty[:, 0, :] / 2)
-        ty = ty.at[:, -1, :].set(ty[:, -1, :] / 2)
-        loss_bnd = jnp.sum(disp_y_right * ty) * dy  # note: ty → disp_y
+        ty = jnp.array(x_t[:, :, -1, :])
+        # ty = ty.at[:, 0, :].set(ty[:, 0, :] / 2)
+        # ty = ty.at[:, -1, :].set(ty[:, -1, :] / 2)
+        # loss_bnd = jnp.sum(disp_y_right * ty) * dy  # note: ty → disp_y
+        loss_bnd = jnp.sum(disp_y_right * ty)  # note: ty → disp_y
 
         # loss_bnd = jnp.sum(disp_x_right * tx) * dy
         # jax.debug.print("loss_int = {}, loss_bnd = {}, diff = {}", loss_int, loss_bnd, loss_int - loss_bnd)
         # jax.debug.print("loss_physics = {}", loss_int - loss_bnd)
         # return loss_data + (loss_int - loss_bnd) / batch_size
         return (loss_int - loss_bnd) / batch_size
-        # return loss_data
+        #return loss_bnd
+        #return loss_data

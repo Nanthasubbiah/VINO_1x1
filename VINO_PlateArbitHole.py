@@ -50,11 +50,11 @@ class FNO2d_PlateHole(FNO2D):
         x_ = x_.at[:, :, 0, :].set(0)
         return x_
 
-    def get_grid(self, x_):
-        grid = super().get_grid(x_)
-        gridy = grid[..., 0:1] * self.model_data['width']
-        gridx = grid[..., 1:2] * self.model_data['length']
-        return jnp.concatenate((gridy, gridx), -1)
+    # def get_grid(self, x_):
+    #    grid = super().get_grid(x_)
+    #    gridy = grid[..., 0:1] * self.model_data['width']
+    #    gridx = grid[..., 1:2] * self.model_data['length']
+    #    return jnp.concatenate((gridy, gridx), -1)
 
 
 class PlateHoleDEM_dataset(PlateHole_dataset):
@@ -183,11 +183,12 @@ print("Evaluating Test Data")
 # model_evaluation(model, model_data, model_params, loss_fn, test_loader, normalizers, mask=True)
 
 field_names = ['disp_x', 'disp_y']
+field_names = ['disp_x']
 print("___________________________________________________________________")
 # Train Dataset Evaluation
-plot_PlateArbitVoid(train_dataset, 56, "Train", model, model_params, model_data, field_names, folder)
+plot_PlateArbitVoid(train_dataset, 0, "Train", model, model_params, model_data, field_names, folder)
 # Test Dataset Evaluation
-plot_PlateArbitVoid(test_dataset, 96, "Test", model, model_params, model_data, field_names, folder)
+# plot_PlateArbitVoid(test_dataset, 0, "Test", model, model_params, model_data, field_names, folder)
 print("___________________________________________________________________")
 
 
